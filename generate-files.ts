@@ -55,3 +55,61 @@ export function generateFiles(count: number, outputDir = "./output") {
 }
 
 generateFiles(5);
+
+const getRandomConfidence = (): number => {
+  const options = [70, 80, 90, 100];
+  return options[Math.floor(Math.random() * options.length)];
+};
+
+const getRandomObservation = (): string => {
+  const options = [
+    "observacion 1",
+    "observacion importante",
+    "nota adicional",
+    "comentario extra",
+    "observación secundaria",
+  ];
+  const selected = options.sort(() => 0.5 - Math.random()).slice(0, 2);
+  return selected.join(", ");
+};
+
+interface PageData {
+  extractedText: string;
+  confidence: number;
+  observations: string;
+}
+
+// 🎯 Función principal para generar un solo PDF con múltiples páginas
+export function generateSinglePDF(
+  pages: number,
+  outputPath = "./documento_unico.pdf"
+) {
+  const doc = new PDFDocument();
+  doc.pipe(fs.createWriteStream(outputPath));
+
+  const allData: PageData[] = [];
+
+  for (let i = 1; i <= pages; i++) {
+    const data: PageData = {
+      extractedText: `pagina ${i}`,
+      confidence: getRandomConfidence(),
+      observations: getRandomObservation(),
+    };
+
+    allData.push(data);
+
+    if (i > 1) doc.addPage();
+
+    doc.fontSize(18).text(`Documento ${i}`, { align: "center" });
+    doc.moveDown();
+    doc.fontSize(12).text(`Texto extraído: ${data.extractedText}`);
+    doc.text(`Confidence: ${data.confidence}`);
+    doc.text(`Observaciones: ${data.observations}`);
+  }
+
+  doc.end();
+
+  console.log(`✅ PDF único generado con ${pages} páginas: ${outputPath}`);
+}
+
+generateSinglePDF(5);
